@@ -23,10 +23,37 @@ class GradCAM:
             exist_ok=True
         )
 
-    def get_base_model(self):
+        self.base_model = (
+            self._find_base_model()
+        )
+
+        self.last_conv_layer = (
+            self._find_last_conv_layer()
+        )
+
+        self.inner_grad_model = (
+            tf.keras.models.Model(
+                inputs=self.base_model.inputs,
+                outputs=[
+                    self.last_conv_layer.output,
+                    self.base_model.output
+                ]
+            )
+        )
+
+        print(
+            f"\nBase model: "
+            f"{self.base_model.name}"
+        )
+
+        print(
+            f"Ultima camada conv: "
+            f"{self.last_conv_layer.name}"
+        )
+
+    def _find_base_model(self):
         """
-        Encontra o MobileNetV2
-        dentro do modelo principal.
+        Busca o modelo base dentro do modelo principal.
         """
         for layer in self.model.layers:
             if isinstance(
@@ -36,28 +63,24 @@ class GradCAM:
                 return layer
 
         raise ValueError(
-            "Base model não encontrada."
+            "Base model nao encontrado."
         )
 
-    def get_last_conv_layer_name(
-        self,
-        base_model
-    ):
+    def _find_last_conv_layer(self):
         """
-        Busca automaticamente
-        a última Conv2D.
+        Busca a ultima camada Conv2D dentro do base model.
         """
         for layer in reversed(
-            base_model.layers
+            self.base_model.layers
         ):
             if isinstance(
                 layer,
                 tf.keras.layers.Conv2D
             ):
-                return layer.name
+                return layer
 
         raise ValueError(
-            "Nenhuma camada Conv2D encontrada."
+            "Nenhuma Conv2D encontrada no base model."
         )
 
     def load_image(
@@ -69,66 +92,49 @@ class GradCAM:
             target_size=self.img_size
         )
 
-        image_array = (
+        image = (
             tf.keras.utils
             .img_to_array(image)
         )
 
-        image_array = np.expand_dims(
-            image_array,
+        image = np.expand_dims(
+            image,
             axis=0
         )
 
-        return image_array
+        return image
 
     def generate_heatmap(
         self,
         image_array
     ):
-        base_model = (
-            self.get_base_model()
-        )
-
-        last_conv_name = (
-            self.get_last_conv_layer_name(
-                base_model
-            )
-        )
-
-        print(
-            f"Última camada conv: "
-            f"{last_conv_name}"
-        )
-
-        last_conv_layer = (
-            base_model.get_layer(
-                last_conv_name
-            )
-        )
-
-        grad_model = (
-            tf.keras.models.Model(
-                inputs=self.model.input,
-                outputs=[
-                    last_conv_layer.output,
-                    self.model.output
-                ]
-            )
-        )
-
         image_tensor = tf.convert_to_tensor(
             image_array,
             dtype=tf.float32
         )
 
         with tf.GradientTape() as tape:
-            conv_outputs, predictions = (
-                grad_model(
-                    image_tensor,
-                    training=False
-                )
-            )
+            x = image_tensor
 
+            for layer in self.model.layers:
+                if isinstance(layer, tf.keras.layers.InputLayer):
+                    continue
+
+                if layer.name == self.base_model.name:
+                    conv_outputs, x = self.inner_grad_model(
+                        x,
+                        training=False
+                    )
+                else:
+                    try:
+                        x = layer(
+                            x,
+                            training=False
+                        )
+                    except TypeError:
+                        x = layer(x)
+
+            predictions = x
             predicted_class = tf.argmax(
                 predictions[0]
             )
@@ -143,6 +149,11 @@ class GradCAM:
             conv_outputs
         )
 
+        if gradients is None:
+            raise ValueError(
+                "Nao foi possivel calcular os gradientes."
+            )
+
         pooled_gradients = (
             tf.reduce_mean(
                 gradients,
@@ -155,8 +166,8 @@ class GradCAM:
         )
 
         heatmap = tf.reduce_sum(
-            conv_outputs
-            * pooled_gradients,
+            pooled_gradients
+            * conv_outputs,
             axis=-1
         )
 
@@ -165,10 +176,13 @@ class GradCAM:
             0
         )
 
-        heatmap /= (
-            tf.reduce_max(
-                heatmap
-            ) + 1e-8
+        heatmap = (
+            heatmap
+            / (
+                tf.reduce_max(
+                    heatmap
+                ) + 1e-8
+            )
         )
 
         return (
@@ -235,13 +249,46 @@ class GradCAM:
             "\nGerando Grad-CAM..."
         )
 
+        x_test = np.array(
+            x_test
+        )
+
+        y_test = np.array(
+            y_test
+        )
+
+        # Converte labels texto em indices, se necessario
+        if y_test.dtype.kind in {"U", "S", "O"}:
+            class_to_index = {
+                name: idx
+                for idx, name in enumerate(
+                    self.class_names
+                )
+            }
+
+            y_test = np.array(
+                [
+                    class_to_index[label]
+                    for label in y_test
+                ]
+            )
+
         saved_count = 0
 
-        for class_name in self.class_names:
-
+        for class_index, class_name in enumerate(
+            self.class_names
+        ):
             indexes = np.where(
-                y_test == class_name
+                y_test == class_index
             )[0]
+
+            print(
+                f"{class_name}: "
+                f"{len(indexes)} imagens"
+            )
+
+            if len(indexes) == 0:
+                continue
 
             selected_indexes = (
                 indexes[
@@ -249,7 +296,7 @@ class GradCAM:
                 ]
             )
 
-            for idx_number, idx in enumerate(
+            for i, idx in enumerate(
                 selected_indexes,
                 start=1
             ):
@@ -299,7 +346,7 @@ class GradCAM:
                 )
 
                 plt.title(
-                    f"Real: "
+                    f"True: "
                     f"{class_name}"
                 )
 
@@ -318,12 +365,9 @@ class GradCAM:
 
                 plt.axis("off")
 
-                save_path = (
-                    os.path.join(
-                        self.output_dir,
-                        f"{class_name}_"
-                        f"{idx_number}.png"
-                    )
+                save_path = os.path.join(
+                    self.output_dir,
+                    f"{class_name}_{i}.png"
                 )
 
                 plt.savefig(
@@ -338,7 +382,7 @@ class GradCAM:
 
         print(
             f"\n{saved_count} "
-            f"imagens salvas em:"
+            f"Grad-CAMs salvos em:"
         )
 
         print(

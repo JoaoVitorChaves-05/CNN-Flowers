@@ -63,7 +63,6 @@ class CNNModel:
             activation="softmax"
         )(x)
 
-        # <<< FALTAVA ISSO
         self.model = tf.keras.Model(
             inputs=inputs,
             outputs=outputs
