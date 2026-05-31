@@ -41,6 +41,24 @@ class GradCAM:
             )
         )
 
+        inputs = tf.keras.Input(shape=self.img_size + (3,))
+        x = inputs
+        conv_outputs = None
+
+        for layer in self.model.layers:
+            if isinstance(layer, tf.keras.layers.InputLayer):
+                continue
+            
+            if layer.name == self.base_model.name:
+                conv_outputs, x = self.inner_grad_model(x)
+            else:
+                x = layer(x)
+
+        self.grad_model = tf.keras.models.Model(
+            inputs=inputs, 
+            outputs=[conv_outputs, x]
+        )
+
         print(
             f"\nBase model: "
             f"{self.base_model.name}"
@@ -114,27 +132,11 @@ class GradCAM:
         )
 
         with tf.GradientTape() as tape:
-            x = image_tensor
+            conv_outputs, predictions = self.grad_model(
+                image_tensor,
+                training=False
+            )
 
-            for layer in self.model.layers:
-                if isinstance(layer, tf.keras.layers.InputLayer):
-                    continue
-
-                if layer.name == self.base_model.name:
-                    conv_outputs, x = self.inner_grad_model(
-                        x,
-                        training=False
-                    )
-                else:
-                    try:
-                        x = layer(
-                            x,
-                            training=False
-                        )
-                    except TypeError:
-                        x = layer(x)
-
-            predictions = x
             predicted_class = tf.argmax(
                 predictions[0]
             )
