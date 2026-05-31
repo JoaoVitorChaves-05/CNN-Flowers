@@ -22,36 +22,36 @@ Este projeto tem como objetivo a construção, treinamento e validação de um m
 ## 🚀 Como executar o projeto
 
 ### 1. Clonar o repositório
-\`\`\`bash
+```bash
 git clone https://github.com/JoaoVitorChaves-05/CNN-Flowers.git
 cd CNN-Flowers
-\`\`\`
+```
 
 ### 2. Criar e ativar o Ambiente Virtual (venv)
 
 **No Windows:**
-\`\`\`powershell
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-\`\`\`
+```
 *(Nota: Se houver erro de permissão no Windows, execute `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` antes de ativar).*
 
 **No Linux ou macOS:**
-\`\`\`bash
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
-\`\`\`
+```
 
 ### 3. Instalar as Dependências
 Com o ambiente ativado, instale as bibliotecas necessárias contidas no `requirements.txt`:
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 ### 4. Executar o Projeto
 O ponto de entrada principal que compila os conjuntos de dados, treina a CNN (ou carrega pesos salvos), dispara os testes estáticos e salva os gráficos na pasta de output é:
-\`\`\`bash
+```bash
 python index.py
-\`\`\`
+```
 
 Os resultados gerados estarão localizados nas pastas internas (ex: relatórios estatísticos e imagens Grad-CAM em `output/gradcam`).
