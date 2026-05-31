@@ -1,276 +1,57 @@
-# 🌸 Flowers Classification with Deep Learning (CNN)
-
-A computer vision project for **flower image classification** using **Convolutional Neural Networks (CNNs)** and **Transfer Learning with MobileNetV2**, achieving **91.47% test accuracy**.
-
-This project was developed as part of a practical Deep Learning assignment and evolved into a complete pipeline including:
-
-✅ Data preprocessing
-✅ Transfer Learning + Fine-Tuning
-✅ Training and validation pipeline
-✅ Classification metrics
-✅ Confusion Matrix
-✅ ROC/AUC analysis
-✅ Error analysis per class
-✅ Explainable AI with Grad-CAM
+# Universidade Federal de São Paulo (UNIFESP)
+## Disciplina: Inteligência Artificial
+**Atividade:** 16  
+**Aluno:** João Vitor Mâncio Chaves  
+**RA:** 176.534  
 
 ---
 
-## 🚀 Project Overview
+# Classificação de Flores com Redes Neurais Convolucionais (CNN) e Grad-CAM
 
-The objective of this project is to classify flower images into **5 categories** using a CNN-based architecture optimized for image recognition.
+## Resumo
+Este projeto tem como objetivo a construção, treinamento e validação de um modelo de base convolucional (CNN) utilizando Transfer Learning com a arquitetura **MobileNetV2** para a classificação de 5 espécies de flores (Daisy, Dandelion, Roses, Sunflowers, Tulips). Além da predição, o projeto implementa o **Grad-CAM** (Gradient-weighted Class Activation Mapping), um mecanismo de atenção visual que permite analisar as regiões de interesse (ROIs) que o modelo utiliza para as suas tomadas de decisão.
 
-Instead of training a neural network from scratch, **Transfer Learning** was applied using **MobileNetV2 pre-trained on ImageNet**, significantly improving convergence speed and performance.
-
-### 🌼 Flower Classes
-
-* Daisy
-* Dandelion
-* Roses
-* Sunflowers
-* Tulips
+## Funcionalidades e Escopo
+- **Data Pipeline:** Carregamento automatizado de dados do Kaggle (`rahmasleam/flowers-dataset`) utilizando a biblioteca `kagglehub`. Efetua Data Augmentation (Flip, Rotation, Zoom) visando maior robustez no treinamento.
+- **Modelagem:** Aplicação de Transfer Learning sobre o base model de pesos do _ImageNet_.
+- **Avaliação e Métricas:** Extração multivariada das validações de Loss, Accuracy, Matriz de Confusão e Curvas ROC/AUC multiclasse.
+- **Explicabilidade:** Mapas de calor gerados com Grad-CAM para interpretabilidade semântica botânica.
 
 ---
 
-## 🧠 Model Architecture
+## 🚀 Como executar o projeto
 
-The project uses **MobileNetV2** as a feature extractor combined with **Fine-Tuning**.
-
-### Why MobileNetV2?
-
-* Lightweight and computationally efficient
-* Excellent performance for image classification
-* Faster training compared to heavier CNNs
-* Suitable for mid-range GPUs
-
-### Training Strategy
-
-* **Transfer Learning**
-* **Fine-Tuning** (last layers unfrozen)
-* **Data Augmentation**
-* **Adam Optimizer**
-* **Sparse Categorical Crossentropy**
-
-### Input Shape
-
-```python
-(224, 224, 3)
-```
-
----
-
-## 📊 Results
-
-### Final Performance
-
-| Metric    | Score      |
-| --------- | ---------- |
-| Accuracy  | **91.47%** |
-| Precision | **91.55%** |
-| Recall    | **91.47%** |
-| F1-Score  | **91.46%** |
-
-### Training Performance
-
-* **20 epochs**
-* **~16 minutes training time**
-* Strong convergence behavior
-* Low overfitting observed
-
----
-
-## 📈 Generated Visualizations
-
-The pipeline automatically generates several performance visualizations:
-
-### Training Curves
-
-* Accuracy curve
-* Loss curve
-
-### Model Evaluation
-
-* Confusion Matrix
-* ROC/AUC Curves
-* Class Accuracy vs Errors
-
-### Explainable AI
-
-* Grad-CAM heatmaps for interpretability
-
-Generated files:
-
-```txt
-output/
-├── accuracy_curve.png
-├── loss_curve.png
-├── confusion_matrix.png
-├── roc_auc.png
-├── class_accuracy_errors.png
-└── gradcam/
-```
-
----
-
-## 🔥 Grad-CAM (Explainable AI)
-
-To improve interpretability, **Grad-CAM (Gradient-weighted Class Activation Mapping)** was implemented.
-
-This technique highlights **which regions of an image influenced the model prediction**, helping validate whether the CNN actually learned relevant visual patterns.
-
-Example insight:
-
-> The model mainly focused on flower petals and flower centers instead of background regions, indicating meaningful feature learning.
-
----
-
-## 🏗️ Project Architecture
-
-The codebase follows a **modular software architecture**, improving maintainability and separation of responsibilities.
-
-```txt
-project/
-│── index.py
-│── data_loader.py
-│── model.py
-│── trainer.py
-│── metrics.py
-│── visualization.py
-│── grad_cam.py
-│── model_manager.py
-│
-├── output/
-│
-└── saved_model/
-```
-
-### Modules Responsibility
-
-| Module             | Responsibility                  |
-| ------------------ | ------------------------------- |
-| `data_loader.py`   | Dataset loading & preprocessing |
-| `model.py`         | CNN architecture                |
-| `trainer.py`       | Model training                  |
-| `metrics.py`       | Classification metrics          |
-| `visualization.py` | Graph generation                |
-| `grad_cam.py`      | Explainability with Grad-CAM    |
-| `model_manager.py` | Model persistence               |
-
----
-
-## 🛠️ Technologies Used
-
-* Python
-* TensorFlow / Keras
-* OpenCV
-* NumPy
-* Matplotlib
-* Scikit-Learn
-* KaggleHub
-
----
-
-## 📦 Dataset
-
-Dataset used:
-
-**Flowers Dataset**
-
-https://www.kaggle.com/datasets/rahmasleam/flowers-dataset
-
-* **3,670 images**
-* **5 flower categories**
-
-Train/Test split:
-
-* **70% Training**
-* **15% Validation**
-* **15% Test**
-
----
-
-## ⚙️ Running the Project
-
-### Clone repository
-
-```bash
-git clone <your-repository-url>
+### 1. Clonar o repositório
+\`\`\`bash
+git clone https://github.com/JoaoVitorChaves-05/CNN-Flowers.git
 cd CNN-Flowers
-```
+\`\`\`
 
-### Create virtual environment
+### 2. Criar e ativar o Ambiente Virtual (venv)
 
-```bash
+**No Windows:**
+\`\`\`powershell
 python -m venv .venv
-```
+.\.venv\Scripts\Activate.ps1
+\`\`\`
+*(Nota: Se houver erro de permissão no Windows, execute `Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned` antes de ativar).*
 
-### Activate environment
-
-Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Linux/Mac:
-
-```bash
+**No Linux ou macOS:**
+\`\`\`bash
+python3 -m venv .venv
 source .venv/bin/activate
-```
+\`\`\`
 
-### Install dependencies
-
-```bash
+### 3. Instalar as Dependências
+Com o ambiente ativado, instale as bibliotecas necessárias contidas no `requirements.txt`:
+\`\`\`bash
 pip install -r requirements.txt
-```
+\`\`\`
 
-### Run project
-
-```bash
+### 4. Executar o Projeto
+O ponto de entrada principal que compila os conjuntos de dados, treina a CNN (ou carrega pesos salvos), dispara os testes estáticos e salva os gráficos na pasta de output é:
+\`\`\`bash
 python index.py
-```
+\`\`\`
 
----
-
-## 💾 Model Persistence
-
-The trained model is automatically saved:
-
-```txt
-saved_model/
-└── flowers_model.keras
-```
-
-This avoids retraining for every execution and speeds up experimentation.
-
----
-
-## 📌 Key Learnings
-
-This project reinforced practical experience in:
-
-* Computer Vision
-* Deep Learning
-* CNN architectures
-* Transfer Learning
-* Fine-Tuning
-* Explainable AI (XAI)
-* Performance Evaluation
-* Modular ML Engineering
-
----
-
-## 👨‍💻 Author
-
-**João Vitor**
-
-Backend Developer | Software Architecture | Machine Learning Enthusiast
-
-Interested in:
-
-* Backend Engineering
-* Deep Learning
-* Computer Vision
-* AI Systems
-* High Performance ML
-
-Feel free to connect on LinkedIn 🚀
+Os resultados gerados estarão localizados nas pastas internas (ex: relatórios estatísticos e imagens Grad-CAM em `output/gradcam`).
